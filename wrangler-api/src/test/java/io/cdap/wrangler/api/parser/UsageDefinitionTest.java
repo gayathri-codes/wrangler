@@ -72,5 +72,39 @@ public class UsageDefinitionTest {
 
     Assert.assertTrue(true);
   }
-
+  
+//  @Test
+//  public void testByteSizeParsing() {
+//    ByteSize size1 = new ByteSize("10KB");
+//    ByteSize size2 = new ByteSize("2MB");
+//    ByteSize size3 = new ByteSize("1GB");
+//
+//    Assert.assertEquals(10 * 1024, size1.getBytes());
+//    Assert.assertEquals(2 * 1024 * 1024, size2.getBytes());
+//    Assert.assertEquals(1L * 1024 * 1024 * 1024, size3.getBytes());
+//  }
+//
+//  @Test
+//  public void testTimeDurationParsing() {
+//    TimeDuration time1 = new TimeDuration("500ms");
+//    TimeDuration time2 = new TimeDuration("2s");
+//    TimeDuration time3 = new TimeDuration("3m");
+//
+//    Assert.assertEquals(500, time1.getMilliseconds());
+//    Assert.assertEquals(2000, time2.getMilliseconds());
+//    Assert.assertEquals(180000, time3.getMilliseconds());
+//  }
+//
+//  @Test
+//  public void testInvalidByteSize() {
+//    Exception exception = Assert.assertThrows(IllegalArgumentException.class, () -> new ByteSize("10XYZ"));
+//    Assert.assertTrue(exception.getMessage().contains("Invalid byte size format"));
+//  }
+//
+//  @Test
+//  public void testInvalidTimeDuration() {
+//    Exception exception = Assert.assertThrows(IllegalArgumentException.class, () -> new TimeDuration("100XYZ"));
+//    Assert.assertTrue(exception.getMessage().contains("Invalid time duration format"));
+//  }
+  
 }

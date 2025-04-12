@@ -17,13 +17,18 @@
 package io.cdap.wrangler.parser;
 
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.Row;
+
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+
 
 /**
  * Tests {@link RecipeCompiler}
@@ -215,4 +220,61 @@ public class RecipeCompilerTest {
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
   }
+  
+  @Test
+  public void testAggregateByteSizeTimeDirective() throws Exception {
+    // Prepare sample rows with the following columns:
+    // "data_transfer_size" with values like "10KB", "1MB", "512B"
+    // "response_time" with values like "500ms", "2s", "150ms"
+    List<Row> rows = new ArrayList<>();
+
+    Row row1 = new Row();
+    row1.add("data_transfer_size", "10KB");  // 10KB = 10 * 1024 = 10240 bytes
+    row1.add("response_time", "500ms");      // 500ms = 500 milliseconds
+    rows.add(row1);
+
+    Row row2 = new Row();
+    row2.add("data_transfer_size", "1MB");     // 1MB = 1048576 bytes
+    row2.add("response_time", "2s");           // 2s = 2000 milliseconds
+    rows.add(row2);
+
+    Row row3 = new Row();
+    row3.add("data_transfer_size", "512B");    // 512B = 512 bytes
+    row3.add("response_time", "150ms");        // 150ms = 150 milliseconds
+    rows.add(row3);
+
+    // Total bytes = 10240 + 1048576 + 512 = 1051328 bytes 
+    // Total time in ms = 500 + 2000 + 150 = 2650 ms
+    // Converted total size in MB = 1051328 / (1024*1024) ≈ 1.002 MB
+    // Converted total time in seconds = 2650 / 1000 = 2.65 seconds
+
+    // Define a directive recipe for ByteSizeTimeAggregator.
+    // For example: 
+    // "byte-size-time-aggregator :data_transfer_size :response_time total_size_mb total_time_sec MB seconds total"
+    String[] recipe = new String[] {
+      "byte-size-time-aggregator :data_transfer_size :response_time total_size_mb total_time_sec MB seconds total"
+    };
+
+    // Execute the recipe using TestingRig (which should parse and execute the directive)
+    List<Row> results = TestingRig.execute(recipe, rows);
+
+    // We expect a single aggregated row as output.
+    Assert.assertEquals(1, results.size());
+    Row aggregated = results.get(0);
+
+    // Retrieve aggregated values from the result row.
+    // They should be stored under the target column names defined in the recipe.
+    Object sizeObj = aggregated.getValue("total_size_mb");
+    Object timeObj = aggregated.getValue("total_time_sec");
+
+    // Assuming the aggregator outputs results as Doubles:
+    double totalSizeMB = (sizeObj instanceof Number) ? ((Number) sizeObj).doubleValue() : Double.parseDouble(sizeObj.toString());
+    double totalTimeSec = (timeObj instanceof Number) ? ((Number) timeObj).doubleValue() : Double.parseDouble(timeObj.toString());
+
+    // Verify the results with appropriate tolerances.
+    Assert.assertEquals(1.002, totalSizeMB, 0.01);
+    Assert.assertEquals(2.65, totalTimeSec, 0.01);
+  }
+  
+  // ... any further test methods ...
 }

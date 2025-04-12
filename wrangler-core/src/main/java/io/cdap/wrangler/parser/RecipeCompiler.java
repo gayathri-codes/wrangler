@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.parser.SyntaxErrorListener;
+import io.cdap.wrangler.parser.DirectivesLexer;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
